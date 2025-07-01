@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hello Tryit 髮況比例計算器</title>
+  <style>
+    body {
+      font-family: 'PMingLiU', '新細明體', serif;
+      background-color: #000;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 450px;
+      margin: 0 auto;
+    }
+    img.logo {
+      width: 2.5cm;
+      height: 2cm;
+      object-fit: contain;
+      display: block;
+      margin: 20px auto 10px auto;
+      opacity: 0;
+      animation: fadeIn 2s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    h1 {
+      font-size: 13px;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: left;
+    }
+    select, input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: none;
+      background-color: #222;
+      color: white;
+      font-size: 13px;
+      font-family: 'PMingLiU', '新細明體', serif;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background-color: white;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="logo.jpeg" alt="Hello Tryit Logo" class="logo" />
+    <h1 style="font-size: 14px; margin-bottom: 20px;">髮況比例計算器</h1>
+
+    <label for="hairHistory">顧客頭髮經歷選擇</label>
+    <select id="hairHistory" onchange="syncHairLevelFromHistory()">
+      <option value="">（選擇可協助理解）</option>
+      <option value="1">無燙染過</option>
+      <option value="2">燙/染 1次</option>
+      <option value="3">燙/染2次 或 各一次</option>
+      <option value="3.5">燙或染達3次或以上</option>
+      <option value="4">漂過／濕髮保有彈性</option>
+    </select>
+
+    <label for="hairLevel">顧客實際髮況</label>
+    <select id="hairLevel">
+      <option value="1">1級</option>
+      <option value="2">2級</option>
+      <option value="3">3級</option>
+      <option value="3.5">3.5級</option>
+      <option value="4">4級</option>
+    </select>
+
+    <label for="totalAmount">輸入總藥水克數：</label>
+    <input type="number" id="totalAmount" placeholder="例如：100" />
+
+    <button onclick="calculateRatio()">計算</button>
+
+    
+    <div class="result" id="result"></div>
+    <div class="result" id="altResult" style="margin-top: 10px; font-size: 13px; color: #ccc;"></div>
+    
+  </div>
+
+  <script>
+    window.onload = function() {
+      document.querySelector(".logo").style.opacity = 1;
+    };
+
+    function syncHairLevelFromHistory() {
+      const history = document.getElementById("hairHistory").value;
+      if (history) {
+        document.getElementById("hairLevel").value = history;
+      }
+    }
+
+    function calculateRatio() {
+      const level = parseFloat(document.getElementById("hairLevel").value);
+      const total = parseFloat(document.getElementById("totalAmount").value);
+      const resultDiv = document.getElementById("result");
+
+      if (!total || total <= 0) {
+        resultDiv.textContent = "請輸入正確的藥水克數";
+        return;
+      }
+
+      let ratioA = 0, ratioB = 0;
+      switch(level) {
+        case 1: ratioA = 1; ratioB = 0; break;
+        case 2: ratioA = 1; ratioB = 0.5; break;
+        case 3: ratioA = 1; ratioB = 1; break;
+        case 3.5: ratioA = 0.5; ratioB = 1; break;
+        case 4: ratioA = 0; ratioB = 1; break;
+      }
+
+      const totalRatio = ratioA + ratioB;
+      const amountA = (total * ratioA / totalRatio).toFixed(1);
+      const amountB = (total * ratioB / totalRatio).toFixed(1);
+
+      resultDiv.textContent = `配方建議：抗拒+ ${amountA} 克，CA極度受損 ${amountB} 克`;
+
+      const logo = document.querySelector(".logo");
+      logo.style.animation = "none";
+      void logo.offsetWidth;
+      logo.style.animation = "fadeIn 2s ease-in-out forwards";
+
+      updateAltResult(level);
+
+    }
+  
+    function updateAltResult(level) {
+      const altResultDiv = document.getElementById("altResult");
+      let altText = "";
+      switch(level) {
+        case 1: altText = "其他廠牌藥劑建議選擇：100"; break;
+        case 2: altText = "其他廠牌藥劑建議選擇：80"; break;
+        case 3: altText = "其他廠牌藥劑建議選擇：50"; break;
+        case 3.5: altText = "其他廠牌藥劑建議選擇：50 + M3 (1:1)"; break;
+        case 4: altText = "其他廠牌藥劑建議選擇：M3"; break;
+        default: altText = "";
+      }
+      altResultDiv.textContent = altText;
+    }
+
+    const levelSelect = document.getElementById("hairLevel");
+    levelSelect.addEventListener("change", function() {
+      const level = parseFloat(levelSelect.value);
+      updateAltResult(level);
+    });
+    updateAltResult(parseFloat(levelSelect.value));
+    </script>
+
+</body>
+</html>
